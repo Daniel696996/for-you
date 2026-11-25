@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Para Sara · Calendario de Adviento</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22 fill=%22%23DCD0FF%22>𖤓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Lora:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+<style>
+/* ===== Variables de color (rojo navideño, blanco, toques dorados/crema) ===== */
+:root{
+  --red:#c41e2a; --deep:#6e0b14; --white:#ffffff; --cream:#fff4ea;
+  --gold:#e0b46a; --rose:#f6d3d6;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'Lora',Georgia,serif; color:var(--white);
+  background:radial-gradient(circle at 50% 0%,#9d1420 0%,var(--deep) 60%,#3e060c 100%) fixed;
+  min-height:100%; overflow-x:hidden; touch-action:pan-y;
+  padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0);
+}
+/* Canvas de nieve: fijo detrás de todo, no bloquea el scroll */
+#nieve{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+
+/* Sara: nombre arriba del todo, con trazo de escritura y brillo suave */
+.sara{
+  font-family:'Great Vibes',cursive; font-size:clamp(4.5rem,18vw,8rem); line-height:1.15;
+  text-align:center; color:#fff; padding:.3em .3em .2em; margin-top:.2em; margin-bottom:-6px; overflow:visible;
+  text-shadow:0 0 12px rgba(255,220,190,.55), 0 2px 10px rgba(0,0,0,.35);
+  position:relative; z-index:2;
+  animation:escribirCiclo 15s ease-in-out infinite, brillo 15s ease-in-out infinite;
+}
+/* Ciclo de 5 s: se escribe de izquierda a derecha, se mantiene iluminada, se desvanece y reinicia.
+   El inset negativo (-50%) en arriba/abajo evita que la curva de la S se recorte. */
+@keyframes escribirCiclo{
+  0%  { clip-path:inset(-50% 100% -50% -50%); opacity:1; }
+  55% { clip-path:inset(-50% -50% -50% -50%); opacity:1; }
+  85% { clip-path:inset(-50% -50% -50% -50%); opacity:1; }
+  100%{ clip-path:inset(-50% -50% -50% -50%); opacity:0; }
+}
+@keyframes chispa{
+  0%,100%{ opacity:0; transform:scale(.4); }
+  20%{ opacity:1; transform:scale(1); }
+  40%{ opacity:0; transform:scale(.4); }
+}
+@keyframes brillo{
+  0%,100%{ text-shadow:0 0 10px rgba(255,220,190,.5), 0 2px 10px rgba(0,0,0,.35); }
+  50%{ text-shadow:0 0 22px rgba(255,245,225,.95), 0 2px 10px rgba(0,0,0,.35); }
+}
+@media (prefers-reduced-motion: reduce){ .sara{ clip-path:none; animation:none; } }
+
+/* Imagen envuelta en enlace */
+.pic-link{display:block;text-decoration:none}
+.pic-link.oculto{display:none}
+
+main{position:relative;z-index:2;max-width:960px;margin:0 auto;padding:28px 14px 60px}
+
+/* Encabezado */
+header{text-align:center;padding:18px 8px 26px}
+h1{
+  font-family:'Great Vibes',cursive; font-weight:400;
+  font-size:clamp(2.6rem,9vw,4.6rem); line-height:1.05; color:var(--white);
+  text-shadow:0 2px 14px rgba(0,0,0,.35);
+}
+header p{
+  margin:12px auto 0; max-width:34rem; font-style:italic;
+  font-size:clamp(1rem,3.2vw,1.2rem); color:var(--cream); opacity:.95;
+}
+.firma{margin-top:8px;color:var(--gold);font-size:.9rem;letter-spacing:.08em}
+
+/* Tablero asimétrico de 31 cajas */
+.tablero{
+  display:grid; grid-template-columns:repeat(4,1fr); grid-auto-rows:76px;
+  grid-auto-flow:dense; gap:8px;
+}
+@media (min-width:640px){ .tablero{grid-template-columns:repeat(5,1fr);grid-auto-rows:92px;gap:12px} }
+
+.caja{
+  position:relative; border:none; cursor:pointer; text-align:left;
+  border-radius:var(--r,10px); padding:8px 10px;
+  display:flex; flex-direction:column; justify-content:space-between;
+  font-family:'Lora',Georgia,serif; color:var(--c,#fff); background:var(--bg,#c41e2a);
+  box-shadow:0 4px 12px rgba(0,0,0,.25); transition:transform .25s ease, box-shadow .25s ease;
+  -webkit-tap-highlight-color:transparent;
+  border:var(--b,none);
+}
+.caja:active{transform:scale(.97)}
+.caja:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(0,0,0,.3)}
+.caja .n{font-size:clamp(1.4rem,5vw,2rem);font-weight:700;line-height:1}
+.caja .tag{font-size:.68rem;text-transform:uppercase;letter-spacing:.12em;opacity:.8}
+.caja.bloqueada{filter:saturate(.55);opacity:.72}
+.caja.bloqueada::after{
+  content:"🔒"; position:absolute; right:6px; top:4px; font-size:.8rem; opacity:.7;
+}
+.caja.abierta::after{content:"✦";position:absolute;right:8px;top:4px;font-size:.9rem;color:var(--gold)}
+.caja.especial{
+  background:linear-gradient(135deg,#f3d58f,#e0b46a 55%,#c99a4b);
+  color:#5a0c14; border:2px solid #fff3d0;
+}
+
+/* ---- Encabezado: contenedor de referencia para los destellos ---- */
+header{position:relative}
+.chispa{
+  position:absolute; width:6px; height:6px; border-radius:50%; background:#fff;
+  box-shadow:0 0 8px #fff, 0 0 14px #ffd9b0; opacity:0; pointer-events:none;
+  animation:chispa 5s ease-in-out infinite;
+}
+
+/* ---- Regalos: cintas y moño de color distinto ---- */
+.caja .n, .caja .tag{position:relative;z-index:2}
+.cinta-v{position:absolute;top:0;bottom:0;left:50%;width:10px;transform:translateX(-50%);background:var(--c);opacity:.28;z-index:0;pointer-events:none}
+.cinta-h{position:absolute;left:0;right:0;top:50%;height:10px;transform:translateY(-50%);background:var(--c);opacity:.28;z-index:0;pointer-events:none}
+.mono{
+  position:absolute; top:-10px; left:50%; transform:translateX(-50%);
+  width:22px; height:14px; border-radius:6px; background:var(--mono);
+  box-shadow:0 1px 3px rgba(0,0,0,.3); z-index:3; pointer-events:none;
+}
+.mono::before,.mono::after{
+  content:""; position:absolute; top:-5px; width:12px; height:12px; border-radius:50%; background:var(--mono);
+}
+.mono::before{left:-10px}
+.mono::after{right:-10px}
+
+/* ---- Decoraciones de esquina (no tapan textos ni el modo prueba) ---- */
+.decor{position:fixed;z-index:1;pointer-events:none;opacity:.9;width:62px}
+.decor svg{width:100%;height:auto;display:block}
+.decor-pino{top:-8px;left:-6px;transform:rotate(-12deg)}
+.decor-bayas{top:-4px;right:-4px;width:56px}
+.decor-muneco{bottom:2px;left:2px;width:50px}
+@media (min-width:640px){
+  .decor{width:110px}
+  .decor-bayas{width:96px}
+  .decor-muneco{width:86px}
+}
+
+/* ---- Corazones morados flotantes ---- */
+.corazon{position:fixed;opacity:.45;z-index:1;pointer-events:none;animation:flota ease-in-out infinite}
+.corazon svg{width:100%;height:100%;display:block}
+@keyframes flota{
+  0%,100%{ transform:translate(0,0) rotate(-6deg); }
+  50%{ transform:translate(6px,-14px) rotate(6deg); }
+}
+
+/* ---- Accesibilidad: sin animaciones decorativas si el usuario lo pide ---- */
+@media (prefers-reduced-motion: reduce){
+  .sara, .chispa, .corazon{ animation:none !important; }
+  .sara{ clip-path:none; opacity:1; }
+}
+
+/* Modal */
+.modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(40,0,6,.7);backdrop-filter:blur(3px)}
+.modal.oculto{display:none}
+.hoja{
+  background:var(--cream); color:#4a0a12; border-radius:18px; max-width:620px; width:100%;
+  max-height:88vh; overflow:auto; padding:22px 20px 26px; box-shadow:0 20px 50px rgba(0,0,0,.4);
+  position:relative;
+}
+.hoja h2{font-family:'Great Vibes',cursive;font-weight:400;font-size:2.4rem;color:var(--red);line-height:1.1}
+.hoja .ref{font-size:.85rem;color:#8a2a33;margin:2px 0 14px;font-style:italic}
+.hoja .texto{font-size:1.03rem;line-height:1.7}
+.hoja .texto em{color:#8a1620;font-weight:400}
+.cerrar{
+  position:absolute;right:12px;top:10px;border:none;background:var(--red);color:#fff;
+  width:36px;height:36px;border-radius:50%;font-size:1.2rem;cursor:pointer
+}
+.pic{display:block;width:100%;max-height:300px;object-fit:cover;border-radius:12px;margin-top:14px}
+.pic.oculto{display:none}
+
+/* Aviso de bloqueo */
+.aviso{
+  position:fixed;left:50%;bottom:72px;transform:translateX(-50%) translateY(20px);
+  background:var(--white);color:var(--red);padding:12px 16px;border-radius:12px;
+  max-width:90%;text-align:center;font-style:italic;box-shadow:0 8px 24px rgba(0,0,0,.35);
+  opacity:0;pointer-events:none;transition:all .35s ease;z-index:60
+}
+.aviso.visible{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* Modo prueba */
+.prueba{
+  position:fixed;right:12px;bottom:12px;z-index:55;font-size:.8rem;
+  background:rgba(20,0,4,.75);border:1px solid rgba(255,255,255,.25);border-radius:12px;
+  padding:8px 10px;color:#fff;backdrop-filter:blur(4px)
+}
+.prueba button,.prueba select{font:inherit;border-radius:8px;border:none;padding:5px 8px;margin-top:6px}
+.prueba button{background:var(--gold);color:#4a0a12;cursor:pointer}
+.prueba .activo{background:#2e8b57;color:#fff}
+.prueba.oculto .panel{display:none}
+.prueba .panel{display:flex;flex-direction:column;gap:6px;margin-top:6px}
+
+footer{position:relative;z-index:2;text-align:center;font-size:.8rem;opacity:.6;padding:0 0 20px}
+</style>
+</head>
+<body>
+
+<canvas id="nieve" aria-hidden="true"></canvas>
+
+<!-- Decoraciones navideñas en las esquinas (SVG) -->
+<div class="decor decor-pino" aria-hidden="true">
+  <svg viewBox="0 0 120 120">
+    <path d="M60 5 L95 55 L75 55 L110 105 L10 105 L45 55 L25 55 Z" fill="#1f6b3a"/>
+    <rect x="55" y="105" width="10" height="12" fill="#6b3d1e"/>
+    <circle cx="40" cy="70" r="4" fill="#e0b46a"/>
+    <circle cx="80" cy="85" r="4" fill="#c41e2a"/>
+    <circle cx="60" cy="40" r="3.5" fill="#f8f4ec"/>
+  </svg>
+</div>
+<div class="decor decor-bayas" aria-hidden="true">
+  <svg viewBox="0 0 120 120">
+    <path d="M5 100 Q40 60 110 15" stroke="#1f6b3a" stroke-width="6" fill="none"/>
+    <ellipse cx="35" cy="75" rx="12" ry="6" fill="#1f6b3a" transform="rotate(-30 35 75)"/>
+    <ellipse cx="80" cy="42" rx="12" ry="6" fill="#1f6b3a" transform="rotate(-35 80 42)"/>
+    <circle cx="60" cy="50" r="6" fill="#c41e2a"/>
+    <circle cx="85" cy="35" r="6" fill="#c41e2a"/>
+    <circle cx="100" cy="24" r="6" fill="#c41e2a"/>
+  </svg>
+</div>
+<div class="decor decor-muneco" aria-hidden="true">
+  <svg viewBox="0 0 120 120">
+    <circle cx="60" cy="85" r="26" fill="#ffffff" stroke="#ddd"/>
+    <circle cx="60" cy="48" r="18" fill="#ffffff" stroke="#ddd"/>
+    <rect x="48" y="22" width="24" height="10" fill="#222"/>
+    <rect x="40" y="30" width="40" height="5" fill="#222"/>
+    <rect x="42" y="62" width="36" height="8" fill="#c41e2a"/>
+    <circle cx="54" cy="44" r="2.5" fill="#222"/>
+    <circle cx="66" cy="44" r="2.5" fill="#222"/>
+    <polygon points="60,48 68,52 60,54" fill="#e0853a"/>
+  </svg>
+</div>
+
+<main>
+  <header>
+    <!-- Nombre animado: arriba del todo, por encima del título -->
+    <!-- Micro-destellos alrededor del nombre (se desactivan con prefers-reduced-motion) -->
+    <span class="chispa" aria-hidden="true" style="top:12%;left:14%"></span>
+    <span class="chispa" aria-hidden="true" style="top:30%;left:80%;animation-delay:1.2s"></span>
+    <span class="chispa" aria-hidden="true" style="top:6%;left:64%;animation-delay:2.4s"></span>
+    <span class="chispa" aria-hidden="true" style="top:58%;left:26%;animation-delay:3.6s"></span>
+    <div class="sara" aria-label="Sara">Sara</div>
+    <h1>Feliz navidad mi niña hermosa</h1>
+    <p>para el amor de mi vida, deseandote cada dia una hermosa navidad</p>
+    <div class="firma">Cada puerta guarda un capítulo de nuestra historia</div>
+  </header>
+
+  <section class="tablero" id="tablero" aria-label="Calendario de 31 días"></section>
+</main>
+
+<footer id="pie">Hecho con amor para Sara</footer>
+
+<!-- Modal con el contenido del día -->
+<div class="modal oculto" id="modal" role="dialog" aria-modal="true">
+  <article class="hoja">
+    <button class="cerrar" id="cerrar" aria-label="Cerrar">×</button>
+    <h2 id="mTitulo"></h2>
+    <div class="ref" id="mRef"></div>
+    <div class="texto" id="mTexto"></div>
+    <!-- ESPACIO DE IMAGEN DEL DÍA: se muestra solo si pegas un enlace en DAYS[n].img -->
+    <!-- Enlace de la imagen: se muestra solo si hay URL en ENLACES[n] (ver arriba en el script) -->
+    <a id="mEnlace" class="pic-link oculto" target="_blank" rel="noopener noreferrer">
+      <img class="pic" id="mImg" alt="">
+    </a>
+  </article>
+</div>
+
+<div class="aviso" id="aviso"></div>
+
+<!-- Panel de Modo Prueba (no altera la fecha real) -->
+<!-- QA OCULTO: no tiene botón visible. Se abre con 5 toques en el pie de página
+     o con Ctrl+Shift+Alt+Q, y pide la clave (QA_CLAVE en el script). -->
+<div class="prueba oculto" id="prueba">
+  <div id="qaLogin" style="display:flex;gap:6px">
+    <input id="qaClave" type="password" placeholder="Clave" autocomplete="off" style="font:inherit;border-radius:8px;border:none;padding:5px 8px;width:110px">
+    <button id="qaEntrar">Entrar</button>
+  </div>
+  <div id="qaPanel" hidden>
+    <button id="btnPrueba">Modo Prueba: OFF</button>
+    <div class="panel">
+      <select id="selDia" aria-label="Elegir día"></select>
+      <button id="btnAbrirPrueba">Abrir día</button>
+      <button id="btnFechaReal">Volver a Fecha Real</button>
+      <button id="btnTests">Ejecutar pruebas</button>
+      <pre id="qaSalida" style="white-space:pre-wrap;max-width:260px;font-size:.72rem;margin-top:6px"></pre>
+    </div>
+    <button id="btnCerrarQA" style="margin-top:6px">Cerrar</button>
+  </div>
+</div>
+
+<script>
+/* =====================================================================
+   1) CONTENIDO: 31 DÍAS (30 de Cantar de los Cantares + Día 31)
+   Para cada día: n (número), ref (cita), t (título), texto (HTML),
+   img (enlace de imagen; déjalo vacío "" si no hay imagen).
+   ===================================================================== */
+const DAYS = [
+  // ---- SEMANA 1 · Ch 1-2 ----
+  { n:1, ref:"Día 1 (Ct 1, 1-4)", t:"El deseo", img:"",
+    texto:`Ella comienza hablando de su deseo: <em>¡Béseme con besos de su boca!, porque mejores son tus amores que el vino</em> (Ct 1, 2). En la quietud de la noche, el corazón de la esposa busca al que ama. Ella sabe que su perfume es el nombre de él, y que su presencia la atrae como un imán. Pero el amado todavía no aparece. Ella cierra los ojos y espera, y una pregunta queda flotando en el aire: ¿llegará él antes del alba?` },
+  // PEGA AQUÍ el enlace (src) de la imagen del Día 1 en img:""
+
+  { n:2, ref:"Día 2 (Ct 1, 5-8)", t:"Morena y buscada", img:"",
+    texto:`Ella confiesa con humildad: <em>Morena soy, pero hermosa</em> (Ct 1, 5). El sol la quemó mientras cuidaba viñas ajenas y descuidó la propia. Aun así, su amado la mira con ternura. Ella le pregunta dónde guarda su rebaño al mediodía, para no andar perdida tras los pastores. Su alma tiembla: ¿y si él ya no la quiere como antes? La respuesta vendrá del propio amado, pero ella debe atreverse a buscarlo entre los rebaños.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 2
+
+  { n:3, ref:"Día 3 (Ct 1, 9-14)", t:"Joyas y mirra", img:"",
+    texto:`Él la compara con una yegua entre los carros del faraón y le promete adornos de oro y plata (Ct 1, 9-11). Ella responde con perfume: <em>Mi amado es para mí como manojo de mirra</em> (Ct 1, 13). Él la llama amiga, y ella se siente elegida entre todas. Pero en el palacio hay murmuraciones y miradas que la incomodan. Ella calla, guarda su corazón y se pregunta si ese amor podrá resistir las miradas de los demás.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 3
+
+  { n:4, ref:"Día 4 (Ct 1, 15-2, 2)", t:"Lirio entre espinos", img:"",
+    texto:`Él la contempla y repite: <em>¡Cuán hermosa eres, amiga mía!</em> (Ct 1, 15). Ella responde que él también es hermoso y que su lecho es verde. Se dicen que son como lirio entre espinos (Ct 2, 2). Pero al caer la tarde, unos hermanos la vigilan con enojo desde la puerta del huerto. Ella no sabe si debe ocultar su alegría o defenderla. Su corazón late fuerte: ¿qué harán esos hermanos mañana?` },
+  // PEGA AQUÍ el enlace de la imagen del Día 4
+
+  { n:5, ref:"Día 5 (Ct 2, 1-7)", t:"La rosa de Sarón", img:"",
+    texto:`Ella se presenta humildemente: <em>Yo soy una flor del campo, un lirio de los valles</em> (Ct 2, 1). Él la lleva a la casa del banquete, y sobre ella su bandera es amor. Ella pide ser sostenida con flores, porque languidece de amor (Ct 2, 5). Él la abraza. Todo es dulce, pero ella siente que algo se le escapa. Mientras la tarde pasa, una voz pide no despertar al amor antes de tiempo (Ct 2, 7). ¿Quién hace esa petición, y por qué?` },
+  // PEGA AQUÍ el enlace de la imagen del Día 5
+
+  { n:6, ref:"Día 6 (Ct 2, 8-13)", t:"Vuelve la primavera", img:"",
+    texto:`Ella oye la voz de su amado que viene saltando por los montes: <em>Levántate, amada mía, hermosa mía, y ven</em> (Ct 2, 10). El invierno ya pasó, las flores aparecen y la tórtola se deja oír en la tierra. Él la invita a salir al campo. Ella se pone en camino, lista para la primavera nueva. Pero las higueras echan fruto y las viñas florecen, y ella no sabe si debe quedarse en casa o salir a su encuentro. El silencio le pesa.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 6
+
+  { n:7, ref:"Día 7 (Ct 2, 14-17)", t:"Mío y suya", img:"",
+    texto:`Él le pide que se muestre y que su voz suene dulce entre las peñas. Ella se alegra: <em>Mi amado es mío, y yo suya</em> (Ct 2, 16). Pero también aparecen las zorras pequeñas que destruyen las viñas (Ct 2, 15). Ella comprende que todo amor floreciente tiene enemigos pequeños, cosas que parecen inofensivas. Se queda en la sombra cuidando la promesa, mientras el día se inclina. Sabe que debe vigilar lo pequeño para proteger lo grande.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 7
+
+  { n:8, ref:"Día 8 (Ct 3, 1-5)", t:"Buscar en la noche", img:"",
+    texto:`Una noche ella busca en su lecho al que ama su alma y no lo encuentra. Se levanta, recorre la ciudad, las calles y las plazas. Pregunta a los guardias, y nadie le da razón. Justo cuando se alejan, lo halla: <em>Hallé al que ama mi alma</em> (Ct 3, 4). Se aferra a él y no lo suelta. Pero la noche aún es larga, y ella siente que alguien la vigila desde las sombras del camino. ¿Quién la observa?` },
+  // PEGA AQUÍ el enlace de la imagen del Día 8
+
+  // ---- SEMANA 2 · Ch 3-4 ----
+  { n:9, ref:"Día 9 (Ct 3, 6-8)", t:"¿Quién sube del desierto?", img:"",
+    texto:`Del desierto sube una columna de humo, perfumada de mirra e incienso. Todos preguntan: <em>¿Quién es ésta que sube del desierto?</em> (Ct 3, 6). Es el cortejo del rey, con valientes alrededor de su lecho, cada uno con espada, temido en la noche. Ella va en medio de ese cortejo, entre el asombro de la gente. Pero su corazón solo piensa en una cosa: llegar al día en que él la mire como esposa.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 9
+
+  { n:10, ref:"Día 10 (Ct 3, 9-11)", t:"La corona de la boda", img:"",
+    texto:`El rey hizo un lecho de madera del Líbano, con columnas de plata y oro (Ct 3, 9-10). Las hijas de Jerusalén salen a mirar. Hay una corona <em>con que lo coronó su madre en el día de su desposorio</em> (Ct 3, 11). Ella lo espera con temblor. Todo está preparado para la fiesta, pero aún falta un paso: el sí de ella, pronunciado frente a todos. ¿Dirá ella esa palabra con el corazón entero, o una duda la detendrá en el último momento?` },
+  // PEGA AQUÍ el enlace de la imagen del Día 10
+
+  { n:11, ref:"Día 11 (Ct 4, 1-5)", t:"Ojos de paloma", img:"",
+    texto:`Él la mira con admiración: <em>¡Cuán hermosa eres, amada mía! Tus ojos son de paloma</em> (Ct 4, 1). Describe su cabello como rebaño de cabras que bajan de Galaad y sus dientes como ovejas trasquiladas. Es un canto que enciende el alma. Ella se siente vista de verdad, no por un adorno sino por lo que es. Pero una duda crece: ¿podrá ella, tan pequeña, corresponder a tanta belleza? Sus ojos se llenan de lágrimas que no logra explicar.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 11
+
+  { n:12, ref:"Día 12 (Ct 4, 6-11)", t:"Me robaste el corazón", img:"",
+    texto:`Él le dice: <em>Me has robado el corazón, hermana mía, esposa</em> (Ct 4, 9). Pide que ella no se oculte del monte de la mirra. Sus labios destilan miel, y bajo su lengua hay leche y miel (Ct 4, 11). Él se siente cautivado por su perfume, que vale más que cualquier aroma del Líbano. Ella siente que su pasión la desborda. Pero el monte de la mirra sigue lejos, y deberá atravesar la distancia para llegar al encuentro. ¿Se atreverá?` },
+  // PEGA AQUÍ el enlace de la imagen del Día 12
+
+  { n:13, ref:"Día 13 (Ct 4, 12-15)", t:"Huerto cerrado", img:"",
+    texto:`Él la llama <em>huerto cerrado, fuente sellada</em> (Ct 4, 12). Ella siente que su cuerpo y su alma son un jardín que guarda un tesoro. Dentro hay granados, nardo, azafrán, caña aromática y árboles de incienso. Todo está preparado para el amado, pero el jardín también necesita ser regado. La fuente espera la lluvia. Ella sabe que debe abrirse, porque solo el amor verdadero puede cruzar la puerta que cerró por miedo.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 13
+
+  { n:14, ref:"Día 14 (Ct 4, 16)", t:"Llamado al viento", img:"",
+    texto:`Ella invoca: <em>Levántate, aire del norte, y ven, viento del sur</em> (Ct 4, 16). Quiere que el viento sople sobre su huerto para que los aromas se esparzan. Entrega su jardín al amado: que venga y coma de su fruta preciosa. Es el momento en que la esposa se rinde del todo. Pero la noche avanza, la lámpara tiembla, y el viento que ella llamó trae un sonido inesperado: alguien llama a la puerta de su huerto.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 14
+
+  // ---- SEMANA 3 · Ch 5-6 ----
+  { n:15, ref:"Día 15 (Ct 5, 1)", t:"Entré en mi huerto", img:"",
+    texto:`El amado responde: <em>Entré en mi huerto, hermana mía, esposa</em> (Ct 5, 1). Come su panal con su miel y bebe su vino y su leche. Los amigos del banquete los invitan a comer y beber en abundancia. Es una fiesta de amor y alegría compartida. Pero la fiesta tiene una sombra: el amado llega, y la esposa está cansada de tanto esperarlo. Ella se encuentra en su lecho, apenas despierta, y no sabe si ha dormido demasiado.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 15
+
+  { n:16, ref:"Día 16 (Ct 5, 2-6)", t:"Yo dormía", img:"",
+    texto:`Ella confiesa: <em>Yo dormía, pero mi corazón velaba</em> (Ct 5, 2). Escucha la voz del amado que llama con dulzura, pero duda, se viste con excusas y no se levanta. Cuando al fin abre, él ya se ha retirado. Ella corre tras su voz y lo busca por las calles, pero los guardias la hieren y le quitan el velo. Su alma se quiebra en la noche. ¿Podrá encontrarlo otra vez antes de que se apague la esperanza?` },
+  // PEGA AQUÍ el enlace de la imagen del Día 16
+
+  { n:17, ref:"Día 17 (Ct 5, 7-9)", t:"Conjuro a las doncellas", img:"",
+    texto:`Ella implora a las hijas de Jerusalén: <em>Os conjuro, doncellas de Jerusalén</em> (Ct 5, 8). Pide que, si lo encuentran, le digan que ella está enferma de amor. Las doncellas le responden con una pregunta: ¿qué tiene tu amado más que otro amado, tú, la más hermosa de las mujeres? Ella siente que la pregunta la reta. Ahora debe describir a su amado, y en esa descripción descubrirá cuánto lo ama de verdad.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 17
+
+  { n:18, ref:"Día 18 (Ct 5, 10-16)", t:"Blanco y rubio", img:"",
+    texto:`Ella responde con su canto: <em>Mi amado es blanco y rubio, señalado entre diez mil</em> (Ct 5, 10). Describe su cabeza, sus cabellos, sus ojos, sus labios y sus manos, cada parte como un tesoro. Al hablar de él, su corazón se enciende y la búsqueda se vuelve más urgente. Las doncellas, conmovidas, preguntan a dónde se fue y piden acompañarla. Pero ella aún no sabe dónde está el amado escondido.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 18
+
+  { n:19, ref:"Día 19 (Ct 6, 1-3)", t:"El huerto de los aromas", img:"",
+    texto:`Las doncellas le preguntan adónde se fue su amado. Ella responde que bajó a su huerto, a los lechos de especias, para apacentar su rebaño y recoger lirios. Y repite con certeza: <em>Yo soy de mi amado, y mi amado es mío</em> (Ct 6, 3). La búsqueda termina en el jardín. Ella corre allí, esperando encontrarlo entre las flores. Pero el huerto es grande y el camino tiene piedras. ¿Estará él esperándola detrás de la siguiente puerta?` },
+  // PEGA AQUÍ el enlace de la imagen del Día 19
+
+  { n:20, ref:"Día 20 (Ct 6, 4-7)", t:"Hermosa como Tirsa", img:"",
+    texto:`Él la encuentra y le dice: <em>Hermosa eres, amiga mía, como Tirsa, agradable como Jerusalén</em> (Ct 6, 4). La mira con tanto amor que ella se turba. Repite las alabanzas de sus ojos, de su cabello y de sus dientes. Ella siente vergüenza y deseo a la vez. Su corazón se acelera, pues el amado la mira como el único tesoro del mundo. Pero una pregunta sigue en el aire: ¿cómo se responde a un amor tan grande?` },
+  // PEGA AQUÍ el enlace de la imagen del Día 20
+
+  { n:21, ref:"Día 21 (Ct 6, 8-10)", t:"Como la aurora", img:"",
+    texto:`Hay muchas reinas y concubinas, pero la de él es única. Las jóvenes la ven y la llaman dichosa (Ct 6, 8-9). Preguntan: <em>¿Quién es ésta que sube como la aurora?</em> (Ct 6, 10). Ella es hermosa como la luna y resplandeciente como el sol. Así la mira el pueblo, y ella sonríe. Pero el amado guarda un secreto: quiere mostrarle algo más grande que cualquier alabanza. ¿Qué será aquello que él desea revelarle?` },
+  // PEGA AQUÍ el enlace de la imagen del Día 21
+
+  { n:22, ref:"Día 22 (Ct 6, 11-13)", t:"Vuelve, sulamita", img:"",
+    texto:`Ella baja al huerto de las nueces para ver los brotes del valle. Algo la sorprende: sin darse cuenta, su alma la pone como carros de los príncipes de su pueblo. Los demás la llaman: <em>Vuelve, vuelve, sulamita; vuelve, vuelve, para que te veamos</em> (Ct 6, 13). Ella se estremece, porque no se siente digna de tanta atención. Su corazón se abre, pero aún no sabe si debe danzar o huir.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 22
+
+  // ---- SEMANA 4 · Ch 7-8 ----
+  { n:23, ref:"Día 23 (Ct 7, 1-5)", t:"Cuán hermosos tus pies", img:"",
+    texto:`Las miradas del pueblo se detienen en ella mientras baila. Él la alaba: <em>¡Cuán hermosos son tus pies en las sandalias, hija de príncipe!</em> (Ct 7, 1). Describe sus caderas, su vientre y su cuello como torre de marfil. Cada palabra es un poema que la ilumina. Ella se siente vista por completo, sin máscaras. Pero el baile se vuelve más intenso, y ella no sabe hasta dónde la llevará esta alegría compartida.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 23
+
+  { n:24, ref:"Día 24 (Ct 7, 6-9)", t:"Tu cabeza como el Carmelo", img:"",
+    texto:`Él dice: <em>Tu cabeza sobre ti como el Carmelo</em> (Ct 7, 5). Su cabello es como púrpura del rey. El amado se acerca más, y su deseo se hace ardiente. Ella le responde con palabras suaves, y la conversación se vuelve íntima entre miradas y promesas. Ella siente que puede entregarse por completo, pero sabe que el amor pide tiempo, paciencia y verdad. ¿Cómo guardarán ambos esa promesa en medio del deseo?` },
+  // PEGA AQUÍ el enlace de la imagen del Día 24
+
+  { n:25, ref:"Día 25 (Ct 7, 10-11)", t:"Yo soy de mi amado", img:"",
+    texto:`Ella responde con firmeza: <em>Yo soy de mi amado, y su deseo es hacia mí</em> (Ct 7, 10). Esa frase la libera de todo temor. Ya no se siente pequeña ni perdida: es de él, y él es suyo. Él la invita a salir al campo y a pasar la noche en las aldeas. Ella siente que la vida se abre como un camino de flores. Pero su corazón presiente que el campo también tendrá sus pruebas.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 25
+
+  { n:26, ref:"Día 26 (Ct 7, 12)", t:"Los campos", img:"",
+    texto:`Ella propone: <em>Levantémonos y vayamos a los campos</em> (Ct 7, 11), donde las viñas echan flores y los granados florecen. Allí le dará sus amores, con los perfumes del campo y los frutos que esperan a la puerta. Ella ha guardado para él lo mejor. Pero mientras caminan, el sol se inclina y la tarde se vuelve incierta. Sus pasos se detienen: ¿quién los observa desde el camino? Ella toma su mano con fuerza y decide no separarse de él ni un instante.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 26
+
+  { n:27, ref:"Día 27 (Ct 7, 13)", t:"Frutos nuevos y añejos", img:"",
+    texto:`Ella dice: <em>En nuestras puertas hay de todos los frutos, nuevos y añejos, que para ti he guardado</em> (Ct 7, 13). Cada fruto representa un año de espera y de fidelidad. Ella quiere compartir con él lo que ha cuidado en silencio. Pero el campo guarda también sus sombras: cuando regresan, la casa está en calma y la puerta, entreabierta. ¿Quién estuvo allí mientras ellos estaban fuera? Ella recorre la casa con el corazón acelerado, buscando alguna señal.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 27
+
+  { n:28, ref:"Día 28 (Ct 8, 1-4)", t:"¡Quién te me diera por hermano!", img:"",
+    texto:`Ella desea que él fuera como su hermano, para besarlo en público sin vergüenza (Ct 8, 1). Pide que la lleve a la casa de su madre, que la enseñe. Le ofrece vino de granada y mosto. Pero advierte a las jóvenes: <em>No despertéis ni hagáis velar al amor</em> (Ct 8, 4). El amor es paciente y no se apresura. Ella comprende que su alegría debe protegerse con sabiduría. Y en el silencio escucha un paso que se acerca desde el desierto.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 28
+
+  { n:29, ref:"Día 29 (Ct 8, 5-6a)", t:"Ponme como sello", img:"",
+    texto:`Desde el desierto ella se apoya en su amado, y él la despierta bajo el manzano (Ct 8, 5). Allí le pide: <em>Ponme como sello sobre tu corazón, como sello sobre tu brazo</em> (Ct 8, 6). El amor de ella se vuelve compromiso eterno. Pero el sello es también una prueba: el amor será probado por el fuego. Ella siente miedo y certeza a la vez. ¿Es capaz su corazón de resistir la llama que él pide?` },
+  // PEGA AQUÍ el enlace de la imagen del Día 29
+
+  { n:30, ref:"Día 30 (Ct 8, 6-7)", t:"Llama del Señor", img:"",
+    texto:`La cumbre llega: <em>Fuerte es como la muerte el amor</em>, y sus llamas son llamas de fuego, <em>llama del Señor</em> (Ct 8, 6). <em>Las muchas aguas no podrán apagar el amor, ni los ríos lo ahogarán</em> (Ct 8, 7). Ni el dinero ni las pruebas pueden comprarlo ni destruirlo. El amor que nace de Dios permanece, y ella lo siente en el pecho como una luz. Ya no duda: su amado es su alianza, y el Señor es testigo de su fidelidad.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 30
+
+  // ---- DÍA 31 · Cierre navideño ----
+  { n:31, ref:"Día 31 (Lc 2, 7)", t:"Para Sara, en Navidad", img:"",
+    texto:`Esa noche santa, en Belén, el amor se hizo carne y envolvió a su Niño en pañales (Lc 2, 7). Así también quiero envolver tu vida con ternura cada día. Hoy te deseo una hermosa navidad, mi niña hermosa: que la luz que llegó en silencio ilumine cada paso tuyo. Gracias por ser mi historia favorita, la que sigo escribiendo contigo. Que el amor que Dios nos regaló sea siempre nuestra alianza y nuestro hogar.` },
+  // PEGA AQUÍ el enlace de la imagen del Día 31
+];
+
+/* =====================================================================
+   2) LÓGICA DE FECHAS
+   Una caja N se abre solo si hoy es diciembre y el día del mes es >= N.
+   Usa la fecha local del dispositivo (new Date()).
+   ===================================================================== */
+/* =====================================================================
+   ENLACES DE IMAGEN POR DÍA (AQUÍ PEGAS TUS URLs)
+   Escribe la URL entre comillas en el día que quieras. Ejemplo:
+   1: "https://ejemplo.com/foto-dia-1.jpg",
+   Si la dejas vacía "", no se muestra nada para ese día.
+   Al tocar la imagen se abre el enlace en una nueva pestaña.
+   ===================================================================== */
+const ENLACES = {
+  1: "",  2: "",  3: "",  4: "",  5: "",  6: "",  7: "",  8: "",
+  9: "", 10: "", 11: "", 12: "", 13: "", 14: "", 15: "", 16: "",
+ 17: "", 18: "", 19: "", 20: "", 21: "", 22: "", 23: "", 24: "",
+ 25: "", 26: "", 27: "", 28: "", 29: "", 30: "", 31: ""
+};
+
+function estaDesbloqueado(n, fecha = new Date()){
+  if (modoPrueba) return true;             // En Modo Prueba se abre cualquiera
+  const hoy = fecha;                       // fecha inyectable para las pruebas
+  return hoy.getMonth() === 11 && hoy.getDate() >= n; // 11 = diciembre
+}
+function fraseBloqueo(n){
+  return `Este regalo te espera el ${n} de diciembre, mi amor. Aún no es su día; el amor también sabe esperar.`;
+}
+
+/* =====================================================================
+   3) RENDER DEL TABLERO (cajas de tamaños, colores y formas distintas)
+   ===================================================================== */
+// Patrón de tamaños (columnas x filas) para lograr un mosaico irregular
+const TAMANOS = [[2,2],[1,1],[1,2],[2,1],[1,1],[1,1],[2,2],[1,1],[1,2],[2,1],[1,1],[1,2],[2,1],[1,1],[1,1]];
+// Paleta rojo / blanco con variaciones sutiles
+const COLORES = [
+  {bg:'#c41e2a',c:'#fff'}, {bg:'#ffffff',c:'#b5121f',b:'2px solid #c41e2a'},
+  {bg:'#8f101b',c:'#fff'}, {bg:'#fff7f2',c:'#9b1620'},
+  {bg:'#e0353f',c:'#fff'}, {bg:'#ffeef0',c:'#8f101b',b:'1px dashed #c41e2a'},
+  {bg:'#a3131f',c:'#fff3e6'}, {bg:'#fdfbf8',c:'#c41e2a',b:'3px solid #f6d3d6'}
+];
+const RADIOS = ['10px','18px 6px','6px 18px','14px','22px 10px 22px 10px'];
+// Colores de moño: dorado, perla, carmesí, plata, verde pino y lavanda
+const MONOS = ['#e0b46a','#f8f4ec','#b0101e','#cfd6dc','#2f6b4a','#B57EDC'];
+
+const tablero = document.getElementById('tablero');
+
+DAYS.forEach((d, i) => {
+  const [cs, rs] = TAMANOS[i % TAMANOS.length];
+  const col = COLORES[i % COLORES.length];
+  const btn = document.createElement('button');
+  btn.className = 'caja';
+  btn.type = 'button';
+  btn.dataset.n = d.n;
+  btn.setAttribute('aria-label', `Día ${d.n}`);
+  btn.style.gridColumn = `span ${cs}`;
+  btn.style.gridRow = `span ${rs}`;
+  btn.style.setProperty('--bg', col.bg);
+  btn.style.setProperty('--c', col.c);
+  if (col.b) btn.style.border = col.b;
+  btn.style.setProperty('--r', RADIOS[i % RADIOS.length]);
+  if (d.n === 24 || d.n === 31) btn.classList.add('especial'); // días clave
+  // Moño de color variado (contraste garantizado con el fondo de cada caja)
+  btn.style.setProperty('--mono', MONOS[i % MONOS.length]);
+  btn.innerHTML =
+    `<span class="cinta-v"></span><span class="cinta-h"></span><span class="mono"></span>` +
+    `<span class="n">${d.n}</span><span class="tag">${d.n === 31 ? 'El gran día' : 'Día ' + d.n}</span>`;
+  btn.addEventListener('click', () => abrirDia(d.n));
+  tablero.appendChild(btn);
+});
+
+function actualizarEstados(){
+  document.querySelectorAll('.caja').forEach(b => {
+    const n = Number(b.dataset.n);
+    const ok = estaDesbloqueado(n);
+    b.classList.toggle('bloqueada', !ok);
+    b.classList.toggle('abierta', ok);
+  });
+}
+
+/* =====================================================================
+   4) MODAL Y AVISOS
+   ===================================================================== */
+const modal = document.getElementById('modal');
+function abrirDia(n){
+  if (!estaDesbloqueado(n)) return mostrarAviso(fraseBloqueo(n));
+  const d = DAYS.find(x => x.n === n);
+  document.getElementById('mTitulo').textContent = d.t;
+  document.getElementById('mRef').textContent = d.ref;
+  document.getElementById('mTexto').innerHTML = d.texto;
+  // Imagen del día: se toma de ENLACES[n] (o de d.img como respaldo)
+  const url = ENLACES[n] || d.img || "";
+  const enlace = document.getElementById('mEnlace');
+  const img = document.getElementById('mImg');
+  if (url) {
+    img.src = url; img.alt = d.t;
+    enlace.href = url;
+    enlace.classList.remove('oculto');
+  } else {
+    img.removeAttribute('src'); enlace.removeAttribute('href');
+    enlace.classList.add('oculto');
+  }
+  modal.classList.remove('oculto');
+}
+document.getElementById('cerrar').addEventListener('click', () => modal.classList.add('oculto'));
+modal.addEventListener('click', e => { if (e.target === modal) modal.classList.add('oculto'); });
+
+let timerAviso;
+function mostrarAviso(texto){
+  const a = document.getElementById('aviso');
+  a.textContent = texto; a.classList.add('visible');
+  clearTimeout(timerAviso);
+  timerAviso = setTimeout(() => a.classList.remove('visible'), 3800);
+}
+
+/* =====================================================================
+   5) MODO PRUEBA (no altera la fecha real; al salir vuelve a la real)
+   ===================================================================== */
+let modoPrueba = false;
+const panelPrueba = document.getElementById('prueba');
+const btnPrueba = document.getElementById('btnPrueba');
+const selDia = document.getElementById('selDia');
+DAYS.forEach(d => selDia.add(new Option(`Día ${d.n}`, d.n)));
+
+/* ---------- ACCESO QA OCULTO ----------
+   Cambia QA_CLAVE por la tuya. Sin botón visible: 5 toques en el pie en 3 s, o Ctrl+Shift+Alt+Q. */
+const QA_CLAVE = "sara-2026";
+const qaLogin = document.getElementById('qaLogin');
+const qaPanel = document.getElementById('qaPanel');
+const qaSalida = document.getElementById('qaSalida');
+let toquesPie = [];
+function abrirQA(){
+  panelPrueba.classList.remove('oculto');
+  qaLogin.style.display = 'flex'; qaPanel.hidden = true;
+  document.getElementById('qaClave').focus();
+}
+function cerrarQA(){
+  panelPrueba.classList.add('oculto'); qaPanel.hidden = true; qaLogin.style.display = 'flex';
+  document.getElementById('qaClave').value = '';
+}
+document.getElementById('pie').addEventListener('click', () => {
+  const t = Date.now();
+  toquesPie = toquesPie.filter(x => t - x < 3000); toquesPie.push(t);
+  if (toquesPie.length >= 5){ toquesPie = []; abrirQA(); }
+});
+document.getElementById('qaEntrar').addEventListener('click', () => {
+  if (document.getElementById('qaClave').value === QA_CLAVE){
+    qaLogin.style.display = 'none'; qaPanel.hidden = false;
+  } else {
+    document.getElementById('qaClave').value = '';
+    mostrarAviso('Clave incorrecta');
+  }
+});
+document.getElementById('qaClave').addEventListener('keydown', e => { if (e.key === 'Enter') document.getElementById('qaEntrar').click(); });
+document.getElementById('btnCerrarQA').addEventListener('click', cerrarQA);
+
+/* Atajo de teclado (escritorio) */
+document.addEventListener('keydown', e => {
+  if (e.ctrlKey && e.shiftKey && e.altKey && e.key.toLowerCase() === 'q') abrirQA();
+  if (e.key === 'Escape'){ modal.classList.add('oculto'); }   // cierra el modal con Esc (accesibilidad)
+});
+
+/* ---------- PRUEBAS AUTOMÁTICAS (botón "Ejecutar pruebas" del panel QA) ---------- */
+function qaPruebas(){
+  const out = [];
+  const ok = (cond, msg) => out.push((cond ? '✔ ' : '✘ ') + msg);
+  ok(DAYS.length === 31, '31 días definidos');
+  ok(DAYS.map(d => d.n).every((n, i) => n === i + 1), 'días numerados del 1 al 31 sin repetir');
+  DAYS.forEach(d => {
+    const w = d.texto.replace(/<[^>]+>/g, '').trim().split(/\s+/).length;
+    if (w < 70 || w > 100) ok(false, `Día ${d.n}: ${w} palabras (debe ser 70-100)`);
+  });
+  ok(DAYS.every(d => d.ref.startsWith(`Día ${d.n} (`)), 'encabezados "Día X (Ct ...)" correctos');
+  ok(Object.keys(ENLACES).length === 31, 'ENLACES tiene 31 entradas');
+  ok(document.querySelectorAll('.caja').length === 31, 'tablero con 31 cajas');
+  ok(!!document.getElementById('nieve'), 'canvas de nieve presente');
+
+  const previo = modoPrueba; modoPrueba = false;
+  ok(estaDesbloqueado(1, new Date(2026, 10, 30)) === false, '30 nov: caja 1 bloqueada');
+  ok(estaDesbloqueado(1, new Date(2026, 11, 1)) === true, '1 dic: caja 1 abierta');
+  ok(estaDesbloqueado(16, new Date(2026, 11, 15)) === false, '15 dic: caja 16 bloqueada');
+  ok(estaDesbloqueado(15, new Date(2026, 11, 15)) === true, '15 dic: caja 15 abierta');
+  ok(estaDesbloqueado(1, new Date(2027, 0, 1)) === false, '1 ene: todo bloqueado');
+  modoPrueba = true;
+  ok(estaDesbloqueado(31, new Date(2026, 5, 1)) === true, 'modo prueba abre cualquier día');
+  modoPrueba = previo;
+
+  const total = out.length;
+  const fallos = out.filter(x => x.startsWith('✘')).length;
+  out.push('', `Resultado: ${total - fallos}/${total} pruebas correctas`);
+  qaSalida.textContent = out.join('\n');
+}
+document.getElementById('btnTests').addEventListener('click', qaPruebas);
+btnPrueba.addEventListener('click', () => {
+  modoPrueba = !modoPrueba;
+  btnPrueba.textContent = 'Modo Prueba: ' + (modoPrueba ? 'ON' : 'OFF');
+  btnPrueba.classList.toggle('activo', modoPrueba);
+  actualizarEstados();
+});
+document.getElementById('btnAbrirPrueba').addEventListener('click', () => {
+  if (!modoPrueba) return mostrarAviso('Activa el Modo Prueba para abrir cualquier día.');
+  abrirDia(Number(selDia.value));
+});
+document.getElementById('btnFechaReal').addEventListener('click', () => {
+  modoPrueba = false;
+  btnPrueba.textContent = 'Modo Prueba: OFF';
+  btnPrueba.classList.remove('activo');
+  actualizarEstados();
+  mostrarAviso('De vuelta a la fecha real del calendario.');
+});
+
+actualizarEstados();
+// Revisa el estado cada minuto por si cambia el día mientras la página está abierta
+setInterval(actualizarEstados, 60000);
+
+/* =====================================================================
+   6) NIEVE INTERACTIVA (cursor en escritorio, dedo en móvil)
+   pointermove / pointerdown cubren mouse, táctil y lápiz.
+   No usamos preventDefault, así el scroll vertical sigue funcionando.
+   ===================================================================== */
+const canvas = document.getElementById('nieve');
+const ctx = canvas.getContext('2d');
+let W, H, copos = [];
+let viento = 0; // viento lateral; lo modifica la inclinación del celular
+const puntero = { x: -9999, y: -9999, vx: 0, vy: 0, activo: false };
+
+function ajustar(){
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+}
+/* Capas de profundidad: lejanos (pequeños, tenues, rápidos), medios y cercanos (grandes, suaves, lentos).
+   k = cuánto le afecta el viento. Se reparten en partes iguales. */
+const CAPAS = [
+  { k: 0.35, r: [0.6, 1.4], v: [1.2, 2.0], op: [0.25, 0.5] },  // lejanos
+  { k: 0.7,  r: [1.2, 2.2], v: [0.7, 1.3], op: [0.5, 0.8] },   // medios
+  { k: 1.0,  r: [2.2, 3.4], v: [0.4, 0.9], op: [0.75, 1.0] }   // cercanos
+];
+const aleatorio = (a, b) => a + Math.random() * (b - a);
+function crearCopos(){
+  // Más nieve que antes, con tope para no saturar ni afectar celulares
+  const n = Math.min(300, Math.floor((W * H) / 5000));
+  copos = Array.from({ length: n }, (_, i) => {
+    const capa = CAPAS[i % CAPAS.length];
+    return {
+      x: Math.random() * W, y: Math.random() * H,
+      k: capa.k, r: aleatorio(capa.r[0], capa.r[1]),
+      vy: aleatorio(capa.v[0], capa.v[1]),
+      vx: 0, ang: Math.random() * Math.PI * 2,
+      op: aleatorio(capa.op[0], capa.op[1])
+    };
+  });
+}
+ajustar(); crearCopos();
+window.addEventListener('resize', () => { ajustar(); crearCopos(); });
+
+function moverPuntero(e){
+  const nx = e.clientX, ny = e.clientY;
+  puntero.vx = nx - puntero.x; puntero.vy = ny - puntero.y;
+  puntero.x = nx; puntero.y = ny; puntero.activo = true;
+  clearTimeout(moverPuntero.t);
+  moverPuntero.t = setTimeout(() => { puntero.activo = false; }, 900);
+}
+window.addEventListener('pointermove', moverPuntero, { passive: true });
+window.addEventListener('pointerdown', moverPuntero, { passive: true });
+window.addEventListener('touchmove', e => {
+  const t = e.touches[0]; if (!t) return;
+  moverPuntero({ clientX: t.clientX, clientY: t.clientY });
+}, { passive: true });
+
+function animar(){
+  ctx.clearRect(0, 0, W, H);
+  const radio = 130;
+  for (const c of copos){
+    // Reacción al puntero: empuje + remolino suave alrededor del cursor/dedo
+    if (puntero.activo){
+      const dx = c.x - puntero.x, dy = c.y - puntero.y;
+      const d2 = dx * dx + dy * dy;
+      if (d2 < radio * radio){
+        const d = Math.sqrt(d2) || 1;
+        const f = (1 - d / radio) * 0.9;
+        c.vx += (dx / d) * f + (-dy / d) * f * 0.6 + puntero.vx * 0.02;
+        c.vy += (dy / d) * f * 0.4 + puntero.vy * 0.02;
+      }
+    }
+    c.vx *= 0.94;
+    c.ang += 0.01;
+    // Deriva: viento global + leve oscilación; las capas cercanas se mueven más
+    c.x += c.vx + (viento + Math.sin(c.ang) * 0.25) * c.k * 1.4;
+    c.y += c.vy;
+    if (c.y > H + 5){ c.y = -5; c.x = Math.random() * W; }
+    if (c.x > W + 5) c.x = -5;
+    if (c.x < -5) c.x = W + 5;
+
+    ctx.beginPath();
+    ctx.fillStyle = `rgba(255,255,255,${c.op})`;
+    ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  requestAnimationFrame(animar);
+}
+/* =====================================================================
+   GIROSCOPIO: al inclinar el celular, el viento de la nieve cambia.
+   iOS exige permiso dentro de un gesto del usuario: se pide en el primer toque.
+   Si el sensor no existe o se niega el permiso, la nieve sigue reaccionando al dedo/cursor.
+   ===================================================================== */
+let giroSuave = 0;
+function alInclinar(e){
+  const gamma = e.gamma || 0;                 // inclinación izquierda/derecha (-90 a 90)
+  giroSuave += ((gamma / 25) - giroSuave) * 0.12;   // suavizado
+  viento = Math.max(-3, Math.min(3, giroSuave * 1.5));
+}
+function activarGiroscopio(){
+  if (typeof DeviceOrientationEvent === 'undefined') return;
+  if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    DeviceOrientationEvent.requestPermission()
+      .then(r => { if (r === 'granted') window.addEventListener('deviceorientation', alInclinar); })
+      .catch(() => {});
+  } else {
+    window.addEventListener('deviceorientation', alInclinar);
+  }
+}
+window.addEventListener('pointerdown', activarGiroscopio, { once: true });
+
+/* Corazones morados flotantes, de fondo, sin tapar el contenido */
+const COLORES_CORAZON = ['#DCD0FF', '#B57EDC', '#9B5DE5'];
+const svgCorazon = c => `<svg viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-9.5-9C1 8.6 3.4 5 7 5c2.1 0 3.6 1.2 5 3 1.4-1.8 2.9-3 5-3 3.6 0 6 3.6 4.5 7-2 4.4-9.5 9-9.5 9z" fill="${c}"/></svg>`;
+for (let i = 0; i < 8; i++){
+  const h = document.createElement('div');
+  h.className = 'corazon';
+  h.setAttribute('aria-hidden', 'true');
+  h.innerHTML = svgCorazon(COLORES_CORAZON[i % COLORES_CORAZON.length]);
+  h.style.left = (5 + Math.random() * 90) + 'vw';
+  h.style.top = (12 + Math.random() * 78) + 'vh';
+  const tam = 12 + Math.random() * 10;
+  h.style.width = h.style.height = tam + 'px';
+  h.style.animationDuration = (6 + Math.random() * 5) + 's';
+  h.style.animationDelay = (-Math.random() * 6) + 's';
+  document.body.appendChild(h);
+}
+
+animar();
+</script>
+</body>
+</html>
